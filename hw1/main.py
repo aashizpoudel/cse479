@@ -24,7 +24,7 @@ for batch_arg,batch_size_val in batch_sizes.items():
             train_ds = utils.get_training_set(batch_size=batch_size_val)                            # get train dataset
             val_ds = utils.get_val_set(batch_size=batch_size_val)                                   # get val dataset
             csv_logger_cb = tf.keras.callbacks.CSVLogger(filename=f"logs/{prefix}_experiment_log.csv")   # store logs in csv file
-            exp_model.fit(train_ds,epochs=3,validation_data=val_ds,callbacks=[early_stopping_cb,csv_logger_cb]) # model training
+            exp_model.fit(train_ds,epochs=100,validation_data=val_ds,callbacks=[early_stopping_cb,csv_logger_cb]) # model training
             
             exp_model.save_weights(f"logs/{prefix}_best_weight.weights.h5") #saving the best model
             
