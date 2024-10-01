@@ -4,6 +4,9 @@ import utils
 import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import time
+from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score, accuracy_score
 
 #Check if there is folder of logs because everything will be stored in logs folder.
 utils.dir_check("./logs")
@@ -38,8 +41,11 @@ for model_num,model_fn in models.items():
                 # get val dataset
                 
                 csv_logger_cb = tf.keras.callbacks.CSVLogger(filename=f"logs/{prefix}_experiment_log.csv")   # store logs in csv file
-                
+                start_time = time.time()
                 exp_model.fit(train_ds,epochs=200,validation_data=val_ds,callbacks=[early_stopping_cb,csv_logger_cb])
+                end_time = time.time() 
+                
+                duration = end_time - start_time
                 
                 exp_model.save_weights(f"logs/{prefix}_best_weight.weights.h5") #saving the best model for this run
                 
@@ -51,13 +57,14 @@ for model_num,model_fn in models.items():
                 single_result['val_f1_score'] = evaluation_results[1]
                 single_result['converged_on']= pd.read_csv(f"logs/{prefix}_experiment_log.csv").tail(1)['epoch'].item()
                 single_result['prefix'] = prefix
+                single_result['duration'] = duration
                 results_csv.append(single_result)
                 
                 train_history = pd.read_csv(f"logs/{prefix}_experiment_log.csv")
                 fig,axs = plt.subplots()
                 axs.plot(train_history['loss'],label="Training loss")
                 axs.plot(train_history['val_loss'],label="Validation loss")
-                plt.title(f"Training history - Model:{model_num}\n Hyps: batch size={batch_size_val}, learning_rate={lr_val}, regularizer={use_regularizer}\n Val accuracy {evaluation_results[0]:.3f})")
+                plt.title(f"Training history - Model:{model_num}\n Hyps: batch size={batch_size_val}, learning_rate={lr_val}, regularizer={use_regularizer}\n Val accuracy {evaluation_results[0]:.3f}")
                 plt.xlabel("Epochs")
                 plt.ylabel("Loss")
                 plt.legend()
@@ -71,10 +78,66 @@ final_result = pd.DataFrame(results_csv)
 final_result.to_csv("logs/exp1.csv")
                       
 #find best model 
-# best_model_hyps = final_results[final_result['val_f1_score']==final_results['val_f1_score'].max()]
+final_result = pd.read_csv("logs/exp1.csv")
+best_model_hyps = final_result[final_result['val_f1_score']==final_result['val_f1_score'].max()]
+prefix = best_model_hyps['prefix'].item()
+print("Best model is:", prefix)
+
+best_model_weight = f"logs/{prefix}_best_weight.weights.h5"
+if prefix[0] == '1':
+    model_fn = model.model_1
+else:
+    model_fn = model.model_2
+
+selected_model = model_fn()
+selected_model.load_weights(best_model_weight)
+
+#Load test set for final evaluation
+test_set= utils.get_test_set(batch_size=1)
+predictions = selected_model.predict(test_set)
+labels = np.concatenate([t for _,t in test_set],axis=0).argmax(axis=-1)
+predictions = predictions.argmax(axis=-1)
+
+class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat','Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
 
+cm = confusion_matrix(labels, predictions)
+print("Confusion matrix")
+print(cm)
+print("--------")
+fig,ax = plt.subplots(figsize=(20,20))
+# ax = fig.add_subplot(111)
+cax = ax.imshow(cm)
+plt.title('Confusion matrix of the classifier')
+# fig.colorbar(cax)
+ax.set_xticks(np.arange(10), labels=class_names)
+ax.set_yticks(np.arange(10), labels=class_names)
+for i in range(len(class_names)):
+    for j in range(len(class_names)):
+        text = ax.text(j, i, cm[i, j],
+                       ha="center", va="center", color="w")
+        
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+plt.savefig("logs/confusion_matrix.pdf")
+plt.close()
+print("----------")
+print("Final model results")
+print("F1 Score(macro)",f1_score(labels,predictions,average="macro"))
+print("Recall Score(macro)",recall_score(labels,predictions,average="macro"))
+print("Precision Score(macro)",precision_score(labels,predictions,average="macro"))
+print("Accuracy Score",accuracy_score(labels,predictions))
 
+print("--------")
 
-
-
+random_three = test_set.shuffle(2).take(3)
+count = 1
+for image,labels in random_three:
+    single_image = image
+    single_label = tf.math.argmax(labels[0]).numpy()
+    prediction = tf.math.argmax(selected_model(single_image),-1).numpy()[0]
+    plt.imshow(single_image[0])
+    plt.title(f"GT: {class_names[single_label]}, Prediction: {class_names[prediction]}")
+    plt.savefig(f"logs/example_{count}.pdf")
+    count += 1
+    plt.close()
