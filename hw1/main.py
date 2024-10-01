@@ -49,7 +49,7 @@ for model_num,model_fn in models.items():
                 fig,axs = plt.subplots()
                 axs.plot(train_history['loss'],label="Training loss")
                 axs.plot(train_history['val_loss'],label="Validation loss")
-                plt.title(f"Training history for batch size={batch_size_val}, learning_rate={lr_val}, regularizer={use_regularizer}.\n val accuracy {evaluation_results[0]})")
+                plt.title(f"Training history for batch size={batch_size_val}, learning_rate={lr_val}, regularizer={use_regularizer}.\n val accuracy {evaluation_results[0]:.3f})")
                 plt.xlabel("Epochs")
                 plt.ylabel("Loss")
                 plt.legend()
