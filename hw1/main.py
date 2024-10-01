@@ -5,6 +5,7 @@ import pickle
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 tf.random.set_seed(1024)
 loss_fn = tf.keras.losses.CategoricalCrossentropy()
 early_stopping_cb = tf.keras.callbacks.EarlyStopping(patience=4, restore_best_weights=True)
@@ -29,7 +30,7 @@ for batch_arg,batch_size_val in batch_sizes.items():
             train_ds = utils.get_training_set(batch_size=batch_size_val)                            # get train dataset
             val_ds = utils.get_val_set(batch_size=batch_size_val)                                   # get val dataset
             csv_logger_cb = tf.keras.callbacks.CSVLogger(filename=f"logs/{prefix}_experiment_log.csv")   # store logs in csv file
-            exp_model.fit(train_ds,epochs=200,validation_data=val_ds,callbacks=[early_stopping_cb,csv_logger_cb]) # model training
+            exp_model.fit(train_ds,epochs=200,validation_data=val_ds,callbacks=[early_stopping_cb,csv_logger_cb]) # model training (was "...[early_stopping_cb,csv_logger_cb])")
             
             exp_model.save_weights(f"logs/{prefix}_best_weight.weights.h5") #saving the best model
             

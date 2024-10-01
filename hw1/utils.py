@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 import numpy as np 
 from sklearn.metrics import accuracy_score,f1_score,confusion_matrix
+import os
 
 DATA_DIR = "./tensorflow-datasets"
 def get_training_set(batch_size=32):
@@ -32,3 +33,9 @@ def evaluate(model, ds):
     return acc_score,f1,cf
 
 
+def dir_check(file_path):
+    try:
+        os.makedirs(os.path.dirname(file_path),exist_ok=True)
+        return True
+    except (FileNotFoundError):
+        return False
