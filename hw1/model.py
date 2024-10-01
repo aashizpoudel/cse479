@@ -7,16 +7,16 @@ def model_1(use_regularizer=False):
     if use_regularizer:
         model = tf.keras.Sequential([
             tf.keras.layers.Flatten(input_shape=(28,28)),
-            tf.keras.layers.Dense(100, activation="relu",kernel_regularizer=tf.keras.regularizers.L1()),
-            tf.keras.layers.Dense(100, activation="relu",kernel_regularizer=tf.keras.regularizers.L1()),
-            tf.keras.layers.Dense(10)
+            tf.keras.layers.Dense(128, activation="relu",kernel_regularizer=tf.keras.regularizers.L1()),
+            tf.keras.layers.Dense(128, activation="relu",kernel_regularizer=tf.keras.regularizers.L1()),
+            tf.keras.layers.Dense(10,activation="softmax")
         ])
     else:
         model = tf.keras.Sequential([
             tf.keras.layers.Flatten(input_shape=(28,28)),
-            tf.keras.layers.Dense(100, activation="relu"),
-            tf.keras.layers.Dense(100, activation="relu"),
-            tf.keras.layers.Dense(10)
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(10,activation="softmax")
         ])
     return model
 
