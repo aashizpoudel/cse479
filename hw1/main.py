@@ -7,9 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score, accuracy_score
+import os
 
-#Check if there is folder of logs because everything will be stored in logs folder.
-utils.dir_check("./logs")
+#Create logs folder because everything will be stored in logs folder.
+os.makedirs("./logs",exist_ok=True)
 
 #Set random seed of 1024 for reproducibility
 tf.random.set_seed(1024)
@@ -20,11 +21,14 @@ early_stopping_cb = tf.keras.callbacks.EarlyStopping(patience=4, restore_best_we
 
 
 models = {1 : model.model_1, 2 : model.model_2}
+
+#hyper parameters
 learning_rates = {'0.01':0.01,"0.001":0.001}
 batch_sizes = {'batch_8':8, 'batch_32':32}
 regularizers = {'regularizer':True,'no_regularizer': False}
+
 results_csv = []
-for model_num,model_fn in models.items():
+for model_num,model_fn in models.items(): #iterate over model functions
     for batch_arg,batch_size_val in batch_sizes.items():
         for lr_arg,lr_val in learning_rates.items():
             for regularizer_arg,use_regularizer in regularizers.items():
@@ -42,7 +46,7 @@ for model_num,model_fn in models.items():
                 
                 csv_logger_cb = tf.keras.callbacks.CSVLogger(filename=f"logs/{prefix}_experiment_log.csv")   # store logs in csv file
                 start_time = time.time()
-                exp_model.fit(train_ds,epochs=200,validation_data=val_ds,callbacks=[early_stopping_cb,csv_logger_cb])
+                exp_model.fit(train_ds,epochs=2,validation_data=val_ds,callbacks=[early_stopping_cb,csv_logger_cb])
                 end_time = time.time() 
                 
                 duration = end_time - start_time
@@ -129,7 +133,7 @@ print("Precision Score(macro)",precision_score(labels,predictions,average="macro
 print("Accuracy Score",accuracy_score(labels,predictions))
 
 print("--------")
-
+# Get random dataset and output image, prediciton and label.
 random_three = test_set.shuffle(2).take(3)
 count = 1
 for image,labels in random_three:
