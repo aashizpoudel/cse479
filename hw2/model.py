@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-L2_REG = tf.keras.regularizers.L2(l2=0.0001)
-print("L2 Reg")
+L2_REG = None
+print("No L2 Reg")
 def vggnet_s(config=[8,'M',16, 'M',32,32,'M'], output_class=100):
     l2_reg=L2_REG
     classifier = tf.keras.Sequential([
