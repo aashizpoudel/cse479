@@ -5,7 +5,7 @@ from sklearn.metrics import top_k_accuracy_score,f1_score,confusion_matrix
 
 DATA_DIR = "./tensorflow-datasets"
 NUM_CLASSES = 100
-def get_train_val_set(train_split="train[:80%]", val_split="train[80%:]"):
+def get_train_val_set(train_split="train[:90%]", val_split="train[91%:]"):
     train_ds = tfds.load("cifar100",data_dir=DATA_DIR,split=train_split)
     val_ds = tfds.load("cifar100",data_dir=DATA_DIR,split=val_split)
     return train_ds, val_ds 
@@ -17,11 +17,22 @@ def preprocess_data(data):
     label = tf.one_hot(data['label'],NUM_CLASSES)
     return image,label
 
+
 def augment_data(images,labels):
-    # images = tf.image.random_flip_left_right(images)
+    images = tf.image.random_flip_left_right(images)
     images = tf.image.random_flip_up_down(images)
     images = tf.image.rot90(images)
     return (images, labels)
+
+
+def augment_data_for_resnet(images,labels):
+    images = tf.image.pad_to_bounding_box(images, 1, 1, 36, 36)
+    images = tf.image.random_crop(images, (32,32,3), seed=None, name=None)
+    # images = tf.image.random_flip_left_right(images)
+    images = tf.image.random_flip_up_down(images)
+    # images = tf.image.rot90(images)
+    return (images, labels)
+
 
 
 def evaluate(model, ds,top_k=1):
