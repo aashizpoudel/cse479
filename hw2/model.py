@@ -1,8 +1,8 @@
 import tensorflow as tf
 
-L2_REG = None
-print("No L2 Reg")
+L2_REG=None
 def vggnet_s(config=[8,'M',16, 'M',32,32,'M'], output_class=100):
+    global L2_REG
     l2_reg=L2_REG
     classifier = tf.keras.Sequential([
         tf.keras.layers.Flatten(),
@@ -22,6 +22,7 @@ def vggnet_s(config=[8,'M',16, 'M',32,32,'M'], output_class=100):
     return model
 
 def vggnet_l(config=[8,'M',16, 'M',32,32,'M',64,64,'M',64,64,'M'], output_class=100):
+    global L2_REG
     l2_reg=L2_REG
     print("L2 Reg", L2_REG)
     classifier = tf.keras.Sequential([
@@ -62,6 +63,7 @@ class ResBlock(tf.keras.Model):
     
 
 def resnet_model():
+    global L2_REG
     l2_reg=L2_REG
     model = tf.keras.Sequential([
         tf.keras.layers.Conv2D(16,(3,3),padding='same',use_bias=False,kernel_regularizer=l2_reg),
