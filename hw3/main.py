@@ -36,24 +36,25 @@ def run_experiment(model_fn,train_ds, val_ds, loss_fn, vectorizer,logs="./result
 
                 exp_results.append(s_result)
                 del model
+                
     final_results=pd.DataFrame(exp_results)
     final_results.to_csv(f"{logs}/exp_results.csv")
     return final_results
 
 
-if __file__=="__main__":
+if __name__ == "__main__":
     model_fn = model.get_bidirectional_lstm_attention
     train_ds, val_ds = util.get_train_val_ds()
-    loss_fn = tf.keras.losses.BinaryCrossEntropy(from_logits=True)
+    loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=True)
     vocab = util.get_for_vocab_ds()
     vectorizer = util.get_text_vectorizer(vocab, vocab_size=30000)
-    results_l = run_experiment(model_fn, train_ds, val_ds, loss_fn, vectorizer, "./results_lstm_")
+    results_l = run_experiment(model_fn, train_ds, val_ds, loss_fn, vectorizer, "./results_lstm_tmp")
     model_fn = model.get_bidirectional_gru_attention
-    results_g = run_experiment(model_fn, train_ds, val_ds, loss_fn, vectorizer, "./results_gru_")
-    combined_results = pd.concat([results_l,results_g],reset_index=True, sort=False)
+    results_g = run_experiment(model_fn, train_ds, val_ds, loss_fn, vectorizer, "./results_gru_tmp")
+    combined = pd.concat([results_l,results_g],ignore_index=True, sort=False)
     with_regularizer = combined[combined['regularizer']==True]
     best= with_regularizer[with_regularizer['accuracy']==with_regularizer['accuracy'].max()]
-    best_config = best['model'].iloc[0]
+    best_config = str(best['model'].iloc[0])
     if "gru" in best_config:
         best_model = model.get_bidirectional_gru_attention(vectorizer)
     else:
