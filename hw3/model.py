@@ -28,38 +28,44 @@ class Attention(tf.keras.layers.Layer):
     
     
 def get_bidirectional_lstm_attention(vectorizer,kernel_regularizer=None, use_dropout=False):
-    input = tf.keras.layers.Input(shape=[None],dtype=tf.string)
+    # kernel_regularizer=None
+    print(kernel_regularizer)
+    dropout = 0.1 if use_dropout else 0.0
+    inputs = tf.keras.layers.Input(shape=[None],dtype=tf.string)
     vocab_len = len(vectorizer.get_vocabulary())
-    x = vectorizer(input)
+    x = vectorizer(inputs)
     x = tf.keras.layers.Embedding(input_dim=vocab_len, output_dim=64, mask_zero=True,name="embedding")(x)
-    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True,kernel_regularizer=kernel_regularizer), name="bi_lstm_0")(x)
-    # x, forward_h, forward_c, backward_h, backward_c = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32,return_sequences=True, return_state=True), name="bi_lstm_0")(x)
-    # x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True,kernel_regularizer=kernel_regularizer), name="bi_lstm_1")(x)
-    x = Attention()(x)
-    # x = tf.keras.layers.Dense(64, activation='relu',kernel_regularizer=kernel_regularizer )(x)
-    x = tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=kernel_regularizer)(x)
+    x = tf.keras.layers.Attention()([x,x])
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64,dropout=dropout, return_sequences=False,kernel_regularizer=kernel_regularizer), name="bi_lstm_0")(x)
+    # x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32, return_sequences=False,kernel_regularizer=kernel_regularizer), name="bi_lstm_1")(x)
+    # if use_dropout:
+    #     x = tf.keras.layers.Dropout(rate=0.1)(x)
+    # x = tf.keras.layers.Dense(32,activation="relu")(x)
     if use_dropout:
-        x = tf.keras.layers.Dropout(rate=0.2)(x)
+        x = tf.keras.layers.Dropout(rate=0.0)(x)
     x = tf.keras.layers.Dense(1)(x)
-    return tf.keras.Model(inputs=input,outputs=x)
+    return tf.keras.Model(inputs=inputs,outputs=x)
 
 
 def get_bidirectional_gru_attention(vectorizer,kernel_regularizer=None, use_dropout=False):
-    input = tf.keras.layers.Input(shape=[None],dtype=tf.string)
+    inputs = tf.keras.layers.Input(shape=[None],dtype=tf.string)
+    # kernel_regularizer=None
+    print(kernel_regularizer)
+    dropout = 0.1 if use_dropout else 0.0
+
     vocab_len = len(vectorizer.get_vocabulary())
-    x = vectorizer(input)
+    x = vectorizer(inputs)
     x = tf.keras.layers.Embedding(input_dim=vocab_len, output_dim=64, mask_zero=True,name="embedding")(x)
-    x = tf.keras.layers.Bidirectional(tf.keras.layers.GRU(64, return_sequences=True,kernel_regularizer=kernel_regularizer), name="bi_gru_0")(x)
-    # x = tf.keras.layers.Bidirectional(tf.keras.layers.GRU(64, return_sequences=True,kernel_regularizer=kernel_regularizer), name="bi_lstm_0")(x)
-    # x, forward_h, forward_c, backward_h, backward_c = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32,return_sequences=True, return_state=True), name="bi_lstm_0")(x)
-    
-    x = Attention()(x)
-    
-    # x = tf.keras.layers.Dense(64, activation='relu',kernel_regularizer=kernel_regularizer )(x)
-    x = tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=kernel_regularizer)(x)
+    x = tf.keras.layers.Attention()([x,x])
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.GRU(64, dropout=dropout, return_sequences=False,kernel_regularizer=kernel_regularizer), name="bi_gru_0")(x)
+
+    # x = tf.keras.layers.Bidirectional(tf.keras.layers.GRU(32, return_sequences=False,kernel_regularizer=kernel_regularizer), name="bi_gru_1")(x)
+    # if use_dropout:
+    #     x = tf.keras.layers.Dropout(rate=0.1)(x)
+    # x = tf.keras.layers.Dense(32,activation="relu")(x)
     if use_dropout:
-        x = tf.keras.layers.Dropout(rate=0.2)(x)
+        x = tf.keras.layers.Dropout(rate=0.0)(x)
     x = tf.keras.layers.Dense(1)(x)
-    return tf.keras.Model(inputs=input,outputs=x)
+    return tf.keras.Model(inputs=inputs,outputs=x)
 
     
